@@ -17,7 +17,7 @@ int main()
     std::cout << "Written for Lord of Panckaes by Solaire :)\nPress C to make mouse click (or configured keys).\n";
 
     SHORT first_key = 0x43;
-    SHORT second_key = 0x56;
+    SHORT second_key = 0x00;
 
     if (std::filesystem::exists("config.json")) 
     {
@@ -73,28 +73,30 @@ int main()
             }
         }
 
-        pressed = GetAsyncKeyState(second_key);
-        if ((1 << 15) & pressed)
-        {
-            POINT pos_cursor;
-            GetCursorPos(&pos_cursor);
-            HWND window = WindowFromPoint(pos_cursor);
-
-            SendMessage(window, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pos_cursor.x, pos_cursor.y));
-            std::this_thread::sleep_for(5ms);
-
-            second_pressed = true;
-        }
-        else
-        {
-            if (second_pressed)
+        if (second_key != 0x00) {
+            pressed = GetAsyncKeyState(second_key);
+            if ((1 << 15) & pressed)
             {
                 POINT pos_cursor;
                 GetCursorPos(&pos_cursor);
                 HWND window = WindowFromPoint(pos_cursor);
 
-                SendMessage(window, WM_RBUTTONUP, 0, MAKELPARAM(pos_cursor.x, pos_cursor.y));
-                second_pressed = false;
+                SendMessage(window, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pos_cursor.x, pos_cursor.y));
+                std::this_thread::sleep_for(5ms);
+
+                second_pressed = true;
+            }
+            else
+            {
+                if (second_pressed)
+                {
+                    POINT pos_cursor;
+                    GetCursorPos(&pos_cursor);
+                    HWND window = WindowFromPoint(pos_cursor);
+
+                    SendMessage(window, WM_RBUTTONUP, 0, MAKELPARAM(pos_cursor.x, pos_cursor.y));
+                    second_pressed = false;
+                }
             }
         }
     }
