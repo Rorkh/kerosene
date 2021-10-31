@@ -1,1 +1,0 @@
-cmake-converter -s ./Kerosene.sln
