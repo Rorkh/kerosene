@@ -59,8 +59,10 @@ namespace utils {
 	void LeftMouseDown()
 	{
 		#ifdef __linux__
+		Display *display = XOpenDisplay(NULL);
 		XTestFakeButtonEvent(display, 1, true, 0);
 		XFlush(display);
+		XCloseDisplay(display);
 		#elif defined(_WIN32)
 		SimulateMousePress(WM_LBUTTONDOWN, MK_LBUTTON);
 		#endif
@@ -69,8 +71,10 @@ namespace utils {
 	void LeftMouseUp()
 	{
 		#ifdef __linux__
+		Display *display = XOpenDisplay(NULL);
 		XTestFakeButtonEvent(display, 1, false, 0);
 		XFlush(display);
+		XCloseDisplay(display);
 		#elif defined(_WIN32)
 		SimulateMousePress(WM_LBUTTONUP, 0);
 		#endif
@@ -79,8 +83,10 @@ namespace utils {
 	void RightMouseDown()
 	{
 		#ifdef __linux__
-		XTestFakeButtonEvent(display, 3, false, 0);
+		Display *display = XOpenDisplay(NULL);
+		XTestFakeButtonEvent(display, 3, true, 0);
 		XFlush(display);
+		XCloseDisplay(display);
 		#elif defined(_WIN32)
 		SimulateMousePress(WM_RBUTTONDOWN, MK_RBUTTON);
 		#endif
@@ -89,8 +95,10 @@ namespace utils {
 	void RightMouseUp()
 	{
 		#ifdef __linux__
+		Display *display = XOpenDisplay(NULL);
 		XTestFakeButtonEvent(display, 3, false, 0);
 		XFlush(display);
+		XCloseDisplay(display);
 		#elif defined(_WIN32)
 		SimulateMousePress(WM_RBUTTONUP, 0);
 		#endif

@@ -45,10 +45,6 @@ int main()
     bool first_pressed = false;
     bool second_pressed = false;
 
-    #ifdef __linux__
-    Display* display = XOpenDisplay(NULL);
-    #endif
-
     while (true)
     {
         if (utils::IsKeyPressed(first_key)) {
@@ -68,6 +64,7 @@ int main()
 
         if (second_key != 0x00) {
             if (utils::IsKeyPressed(second_key)) {
+                std::cout << "1\n";
                 utils::RightMouseDown();
                 std::this_thread::sleep_for(5ms);
 
@@ -83,8 +80,4 @@ int main()
             }
         }
     }
-
-    #ifdef __linux__
-    XCloseDisplay(display);
-    #endif
 }
