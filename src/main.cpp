@@ -64,7 +64,6 @@ int main()
 
         if (second_key != 0x00) {
             if (utils::IsKeyPressed(second_key)) {
-                std::cout << "1\n";
                 utils::RightMouseDown();
                 std::this_thread::sleep_for(5ms);
 
