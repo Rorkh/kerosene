@@ -1,6 +1,4 @@
 ﻿#include <iostream>
-#include <sstream>
-#include <fstream>
 
 #include <chrono>
 #include <thread>
@@ -8,47 +6,50 @@
 #include "misc/consts.h"
 #include "misc/utils.h"
 
-#include "thirdparty/picojson.h"
+#ifdef __WIN32
+    #define LeftMouseDown() utils::LeftMouseDown(window);
+    #define LeftMouseUp() utils::LeftMouseUp(window);
+    #define RightMouseDown() utils::RightMouseDown(window);
+    #define RightMouseUp() utils::RightMouseUp(window);
+#elif defined(__linux__)
+    #define LeftMouseDown() utils::LeftMouseDown();
+    #define LeftMouseUp() utils::LeftMouseUp();
+    #define RightMouseDown() utils::RightMouseDown();
+    #define RightMouseUp() utils::RightMouseUp();
+#endif
 
 int main()
 {
     using namespace std::chrono_literals;
-    std::cout << "Written for Lord of Panckaes by Solaire :)\nPress C to make mouse click (or configured keys).\n";
+
+    std::cout << "Written for Lord of Panckaes by Solaire ";
+
+    #ifdef __WIN32
+        std::cout << "\x03";
+    #elif __linux__
+        std::cout << "\xe2\x99\xa5";
+    #endif
+
+    std::cout << "\nIt's better one.\n\n";
 
     int first_key = constant::PRIMARY_KEY;
     int second_key = 0x00;
 
-    if (utils::IsFileExists("config.json")) 
-    {
-        std::ifstream file;
-        std::stringstream ss;
-
-        file.open("config.json", std::ifstream::binary);
-        ss << file.rdbuf();
-        file.close();
-
-        picojson::value v;
-        ss >> v;
-
-        std::string err = picojson::get_last_error();
-        if (!err.empty()) {
-            std::cerr << err << std::endl;
-            return -1;
-        }
-
-        picojson::object config = v.get<picojson::object>();
-
-        if (!config["firstKey"].is<picojson::null>()) first_key = config["firstKey"].get<double>();
-        if (!config["secondKey"].is<picojson::null>()) second_key = config["secondKey"].get<double>();
-    }
+    utils::ReadConfig(&first_key, &second_key);
 
     bool first_pressed = false;
     bool second_pressed = false;
 
+    #ifdef __WIN32
+        HWND window = utils::FindOsu();
+    #endif
+
+    std::cout << "\nPress C to make mouse click (or configured keys).\n";
+
     while (true)
     {
         if (utils::IsKeyPressed(first_key)) {
-            utils::LeftMouseDown();
+            LeftMouseDown();
             std::this_thread::sleep_for(5ms);
 
             first_pressed = true;
@@ -57,14 +58,14 @@ int main()
         {
             if (first_pressed)
             {
-                utils::LeftMouseUp();
+                LeftMouseUp();
                 first_pressed = false;
             }
         }
 
         if (second_key != 0x00) {
             if (utils::IsKeyPressed(second_key)) {
-                utils::RightMouseDown();
+                RightMouseDown();
                 std::this_thread::sleep_for(5ms);
 
                 second_pressed = true;
@@ -73,7 +74,7 @@ int main()
             {
                 if (second_pressed)
                 {
-                    utils::RightMouseUp();
+                    RightMouseUp();
                     second_pressed = false;
                 }
             }

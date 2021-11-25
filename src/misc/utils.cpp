@@ -1,16 +1,15 @@
 #include "utils.h"
 
 #ifdef _WIN32
-void SimulateMousePress(UINT Msg, WPARAM wParam)
+void SimulateMousePress(HWND window, UINT Msg, WPARAM wParam)
 {
 	POINT pos_cursor;
 	GetCursorPos(&pos_cursor);
-	HWND window = WindowFromPoint(pos_cursor);
 	SendMessage(window, Msg, wParam, MAKELPARAM(pos_cursor.x, pos_cursor.y));
 }
 #endif
 
-namespace utils {
+namespace utils {	
 	int GetKey()
 	{
 		#ifdef _WIN32
@@ -56,51 +55,104 @@ namespace utils {
 		}   
 	}
 
-	void LeftMouseDown()
+	#ifdef __linux__
+		void LeftMouseDown()
+		{
+			Display *display = XOpenDisplay(NULL);
+			XTestFakeButtonEvent(display, 1, true, 0);
+			XFlush(display);
+			XCloseDisplay(display);
+		}
+
+		void LeftMouseUp()
+		{
+			Display *display = XOpenDisplay(NULL);
+			XTestFakeButtonEvent(display, 1, false, 0);
+			XFlush(display);
+			XCloseDisplay(display);
+		}
+
+		void RightMouseDown()
+		{
+			Display *display = XOpenDisplay(NULL);
+			XTestFakeButtonEvent(display, 3, true, 0);
+			XFlush(display);
+			XCloseDisplay(display);
+		}
+
+		void RightMouseUp()
+		{
+			Display *display = XOpenDisplay(NULL);
+			XTestFakeButtonEvent(display, 3, false, 0);
+			XFlush(display);
+			XCloseDisplay(display);
+		}
+	#elif defined(_WIN32)
+		void LeftMouseDown(HWND window)
+		{
+			SimulateMousePress(window, WM_LBUTTONDOWN, MK_LBUTTON);
+		}
+
+		void LeftMouseUp(HWND window)
+		{
+			SimulateMousePress(window, WM_LBUTTONUP, 0);
+		}
+
+		void RightMouseDown(HWND window)
+		{
+			SimulateMousePress(window, WM_RBUTTONDOWN, MK_RBUTTON);
+		}
+
+		void RightMouseUp(HWND window)
+		{
+			SimulateMousePress(window, WM_RBUTTONUP, 0);
+		}
+	#endif
+
+	void ReadConfig(int *first_key, int *second_key)
 	{
-		#ifdef __linux__
-		Display *display = XOpenDisplay(NULL);
-		XTestFakeButtonEvent(display, 1, true, 0);
-		XFlush(display);
-		XCloseDisplay(display);
-		#elif defined(_WIN32)
-		SimulateMousePress(WM_LBUTTONDOWN, MK_LBUTTON);
-		#endif
+		if (utils::IsFileExists("config.json")) 
+		{
+			std::ifstream file;
+			std::stringstream ss;
+
+			file.open("config.json", std::ifstream::binary);
+			ss << file.rdbuf();
+			file.close();
+
+			picojson::value v;
+			ss >> v;
+
+			std::string err = picojson::get_last_error();
+			if (!err.empty()) {
+				std::cerr << err << std::endl;
+			}
+
+			picojson::object config = v.get<picojson::object>();
+
+			if (!config["firstKey"].is<picojson::null>()) *first_key = config["firstKey"].get<double>();
+			if (!config["secondKey"].is<picojson::null>()) *second_key = config["secondKey"].get<double>();
+		}
 	}
 
-	void LeftMouseUp()
-	{
-		#ifdef __linux__
-		Display *display = XOpenDisplay(NULL);
-		XTestFakeButtonEvent(display, 1, false, 0);
-		XFlush(display);
-		XCloseDisplay(display);
-		#elif defined(_WIN32)
-		SimulateMousePress(WM_LBUTTONUP, 0);
-		#endif
-	}
+	#ifdef _WIN32
+		HWND FindOsu()
+		{
+			std::cout << "Searching for \"osu!\" window\n";
+			HWND OsuWindow = FindWindowA(nullptr, TEXT("osu!"));
 
-	void RightMouseDown()
-	{
-		#ifdef __linux__
-		Display *display = XOpenDisplay(NULL);
-		XTestFakeButtonEvent(display, 3, true, 0);
-		XFlush(display);
-		XCloseDisplay(display);
-		#elif defined(_WIN32)
-		SimulateMousePress(WM_RBUTTONDOWN, MK_RBUTTON);
-		#endif
-	}
+			if (OsuWindow == nullptr) 
+			{
+				std::cout << "Please run osu!\n";
+				while (OsuWindow == nullptr) 
+				{
+					OsuWindow = FindWindowA(nullptr, TEXT("osu!"));
+					Sleep(100);
+				}
+			}
 
-	void RightMouseUp()
-	{
-		#ifdef __linux__
-		Display *display = XOpenDisplay(NULL);
-		XTestFakeButtonEvent(display, 3, false, 0);
-		XFlush(display);
-		XCloseDisplay(display);
-		#elif defined(_WIN32)
-		SimulateMousePress(WM_RBUTTONUP, 0);
-		#endif
-	}
+			std::cout << "Osu! founded\n";
+			return OsuWindow;
+		}
+	#endif
 }

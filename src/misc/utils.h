@@ -1,5 +1,10 @@
 #include <unistd.h>
+
 #include <string>
+#include <sstream>
+#include <fstream>
+
+#include "../thirdparty/picojson.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -31,9 +36,22 @@ namespace utils {
 	bool IsKeyPressed(int key);
 	bool IsFileExists(const std::string& name);
 
-	void LeftMouseDown();
-	void LeftMouseUp();
 
-	void RightMouseDown();
-	void RightMouseUp();
+	#ifdef _WIN32
+		HWND FindOsu();
+
+		void LeftMouseDown(HWND window);
+		void LeftMouseUp(HWND window);
+
+		void RightMouseDown(HWND window);
+		void RightMouseUp(HWND window);
+	#elif defined(__linux)
+		void LeftMouseDown();
+		void LeftMouseUp();
+
+		void RightMouseDown();
+		void RightMouseUp();
+	#endif
+
+	void ReadConfig(int *first_key, int *second_key);
 }
